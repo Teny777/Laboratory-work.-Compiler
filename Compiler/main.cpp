@@ -1,8 +1,7 @@
 #include<string>
 #include<fstream>
 #include<iostream>
-#include <cctype> 
-
+#include<map>
 
 // Тип токена
 enum TokenType {
@@ -39,13 +38,20 @@ enum OperationSymbols {
 	divisionSy,
 	equalSy,
 	mulSy,
-	openingParSy
+	openParSy,
+	closeParSy,
+	openIndSy,
+	closeIndSy
 };
+
+
 
 class CVariant {
 public:
-
+	virtual std::string GetClassType() = 0;
+	virtual std::string GetStrValue() = 0;
 };
+
 
 class CIntVariant : public CVariant {
 private:
@@ -55,7 +61,18 @@ public:
 	CIntVariant(int _val) {
 		value = _val;
 	}
+	std::string GetClassType() override {
+		return "int";
+	}
+	int GetValue() {
+		return value;
+	}
+
+	std::string GetStrValue() override {
+		return std::to_string(value);
+	}
 };
+
 
 class CDoubleVariant : public CVariant {
 private:
@@ -64,6 +81,18 @@ public:
 	CDoubleVariant(double _val) {
 		value = _val;
 	}
+
+	std::string GetClassType() override {
+		return "double";
+	}
+	double GetValue() {
+		return value;
+	}
+
+	std::string GetStrValue() override {
+		return std::to_string(value);
+	}
+
 };
 
 
@@ -74,6 +103,17 @@ public:
 	CStringVariant(std::string _val) {
 		value = _val;
 	}
+
+	std::string GetClassType() override {
+		return "string";
+	}
+	std::string GetValue() {
+		return value;
+	}
+
+	std::string GetStrValue() override {
+		return value;
+	}
 };
 
 
@@ -81,16 +121,63 @@ class CToken {
 private:
 	TokenType tt;
 	OperationSymbols op;
+	std::map<OperationSymbols, std::pair<std::string, std::string>> ValueOfOp;
 	CVariant* constVal;
 	std::string comment;
 
 public:
 
-	CToken(TokenType _tt, OperationSymbols _op, CVariant* _constVal=nullptr ,std::string _com="") {
+	void GetValueOfOp() {
+
+		ValueOfOp[assignmentSy] = { "Assignment",":=" };
+		ValueOfOp[descriptionOfTypesSy] = { "Description Of Types","::" };
+		ValueOfOp[notEqualSy] = { "Comparison","<>" };
+		ValueOfOp[lessEqualSy] = { "Comparison","<="};
+		ValueOfOp[lessSy] = { "Comparison","<" };
+		ValueOfOp[moreEqualSy] = { "Comparison",">=" };
+		ValueOfOp[moreSy] = { "Comparison",">" };
+		ValueOfOp[semicolonSy] = { "Separator",";" };
+		ValueOfOp[pointSy] = { "Separator","." };
+		ValueOfOp[ellipsisSy] = { "ellipsis",".." };
+		ValueOfOp[sumSy] = { "Arithmetic Operators","+" };
+		ValueOfOp[minusSy] = { "Arithmetic Operators","-" };
+		ValueOfOp[divisionSy] = { "Arithmetic Operators","/" };
+		ValueOfOp[equalSy] = { "Comparison","=" };
+		ValueOfOp[mulSy] = { "Arithmetic Operators","*" };
+		ValueOfOp[openParSy] = { "Separator","(" };
+		ValueOfOp[closeParSy] = { "Separator",")" };
+		ValueOfOp[openIndSy] = { "Separator","[" };
+		ValueOfOp[closeIndSy] = { "Separator","]" };
+	}
+
+	CToken(TokenType _tt, OperationSymbols _op, CVariant* _constVal = nullptr, std::string _com = "") {
 		tt = _tt;
 		op = _op;
 		constVal = _constVal;
 		comment = _com;
+		GetValueOfOp();
+	}
+
+	void Print() {
+		if (this == nullptr) return;
+		if (tt == ttConst) {
+			if (constVal->GetClassType() == "int") {
+				std::cout << "Type: IntConst\nValue = " << constVal->GetStrValue() << '\n' << '\n';
+				return;
+			}
+			if (constVal->GetClassType() == "double") {
+				std::cout << "Type: DoubleConst\nValue = " << constVal->GetStrValue() << '\n' << '\n';
+				return;
+			}
+			if (constVal->GetClassType() == "string") {
+				std::cout << "Type: StringConst\nValue = " << constVal->GetStrValue() << '\n' << '\n';
+				return;
+			}
+		}
+		if (tt == ttOper) {
+			std::cout <<"Type: "<< ValueOfOp[op].first << '\n' << ValueOfOp[op].second << '\n' << '\n';
+			return;
+		}
 	}
 
 };
@@ -98,7 +185,7 @@ public:
 class CIO {
 private:
 	std::ifstream fin;
-	char cur=-1;
+	char cur = -1;
 
 	//Получение символа из файла
 	char GetNextCh() {
@@ -110,10 +197,14 @@ private:
 
 	//Проверка на букву
 	bool IsLetter(char cur) {
-		return cur>='a'&&cur<='z'||cur>='A'&&cur<='Z';
+		return cur >= 'a' && cur <= 'z' || cur >= 'A' && cur <= 'Z';
 	}
 
-	
+	//Проверка на число
+	bool IsDigit(char cur) {
+		return cur >= '0' && cur <= '9';
+	}
+
 
 public:
 
@@ -124,13 +215,13 @@ public:
 	//Получение следующего токена
 	CToken* GetNextToken() {
 		if (cur == -1) cur = GetNextCh();
-		while (cur == ' '||cur=='\n') cur = GetNextCh();
+		while (cur == ' ' || cur == '\n') cur = GetNextCh();
 
-		switch (cur) 
-		{	
+		switch (cur)
+		{
 		case ':':
 			cur = GetNextCh();
-			if (cur == '=') {	
+			if (cur == '=') {
 				cur = GetNextCh();
 				return new CToken(ttOper, assignmentSy);    //Оператор присваивания
 			}
@@ -170,7 +261,7 @@ public:
 			}
 			return new CToken(ttOper, pointSy); //Оператор точка
 
-		
+
 		case '\'': {
 			std::string stringConst = "'";
 			do {
@@ -205,14 +296,15 @@ public:
 			cur = GetNextCh();
 			return new CToken(ttComment, null, nullptr, comment); //Однострочный комментарий
 		}
-		
+
 		case '=':
 			cur = GetNextCh();
 			return new CToken(ttOper, equalSy);
 
 		case '(': {
+
 			cur = GetNextCh();
-			if (cur != '*') return new CToken(ttOper, openingParSy);
+			if (cur != '*') return new CToken(ttOper, openParSy);
 			cur = GetNextCh();
 			std::string comment = "(*";
 			comment += cur;
@@ -230,21 +322,59 @@ public:
 				}
 			}
 		}
+		case ')':
+			cur = GetNextCh();
+			return new CToken(ttOper, closeParSy);
+
+
+
 		case '{': {
 			std::string comment = "{";
 
 			while (cur != '}') {
-				
+
 				cur = GetNextCh();
 				comment += cur;
 			}
 			return new CToken(ttComment, null, nullptr, comment); //Многострочный комментарий {..}
 		}
-			
 
+		case '[':
+			cur = GetNextCh();
+			return new CToken(ttOper, openIndSy);
+		case ']':
+			cur = GetNextCh();
+			return new CToken(ttOper, closeIndSy);
+		case '&':
+			cur = GetNextCh();
+			return new CToken(ttOper, ellipsisSy);
 		}
 
-		cur = GetNextCh();
+		//Считывание числовой константы
+		if (IsDigit(cur)) {
+			double number = 0;
+			while (IsDigit(cur)) {
+				number = number * 10 + (cur - '0');
+				cur = GetNextCh();
+			}
+			if (cur != '.') return new CToken(ttConst, null, new CIntVariant(int(number))); //константа типа int
+			cur = GetNextCh();
+			if (cur == '.') {
+				cur = '&';
+				return new CToken(ttConst, null, new CIntVariant(int(number)));
+				
+			}
+			int count = 0;
+
+			while (IsDigit(cur)) {
+				number = number * 10 + (cur - '0');
+				count++;
+				cur = GetNextCh();
+			}
+			number /= pow(10, count);
+			return new CToken(ttConst, null, new CDoubleVariant(number)); //константа типа double
+
+		}
 		return nullptr;
 	}
 
@@ -253,8 +383,10 @@ public:
 		fin.close();
 	}
 
-	
+
 };
+
+
 
 
 
@@ -263,8 +395,8 @@ int main() {
 	CToken* cur = nullptr;
 	do {
 		cur = io->GetNextToken();
-		std::cout << cur << '\n';
-	} while (true);
+		cur->Print();
+	} while (cur != nullptr);
 
 
 	delete io;

@@ -1,6 +1,4 @@
-a:='hello' //Hello wordl
-(*hello*rep**)
-
-{htllo
-all
-rep}
+3   := 8342432.4322432
+(342323.423)
+3 = 'hello'
+[32.43..3]
