@@ -8,8 +8,51 @@
 char CIO::GetNextCh() {
 	char ch;
 	fin.get(ch);
+	while (DeleteComment(ch));
 	if (fin.eof()) return NULL;
 	return ch;
+}
+
+//Удаление комментария
+bool CIO::DeleteComment(char &ch) {
+	char nxt;
+	if (ch == '/') {
+		fin.get(nxt);
+		if (nxt == '/') {
+			while (ch != '\n')
+				fin.get(ch);
+			fin.get(ch);
+			return true;
+		}
+		fin.seekg(-1, std::ios::cur);
+		return false;
+	}
+	if (ch == '{') {
+		while(ch!='}')
+			fin.get(ch);
+		fin.get(ch);
+		return true;
+	}
+	if (ch == '(') {
+		fin.get(nxt);
+		if (nxt != '*') {
+			fin.seekg(-1, std::ios::cur);
+			return false;
+		}
+		fin.get(ch);
+		while (true) {
+			while (ch != '*') {
+				fin.get(ch);
+			}
+			fin.get(ch);
+			if (ch == ')') {
+				fin.get(ch);
+				return true;
+			}
+		}
+
+	}
+	return false;
 }
 
 //Проверка на букву
@@ -26,6 +69,43 @@ CIO::CIO(std::string path) {
 	fin.open(path);
 }
 
+//Получение числовой константы
+CToken* CIO::GetDigitConst(int sgn) {
+	double number = 0;
+	while (IsDigit(cur)) {
+		number = number * 10 + (cur - '0');
+		cur = GetNextCh();
+	}
+	if (cur != '.') return new CToken(ttConst,  new CIntVariant(int(number * sgn)), std::to_string(int(number* sgn))); //константа типа int
+	cur = GetNextCh();
+	if (cur == '.') {
+		cur = '&';
+		return new CToken(ttConst, new CIntVariant(int(number * sgn)), std::to_string(int(number * sgn)) );
+
+	}
+	int count = 0;
+	while (IsDigit(cur)) {
+		number = number * 10 + (cur - '0');
+		count++;
+		cur = GetNextCh();
+	}
+	number /= pow(10, count);
+	return new CToken(ttConst, new CDoubleVariant(number * sgn), std::to_string(number * sgn)); //константа типа double
+}
+//Получение слова
+CToken* CIO::GetWord() {
+	std::string ident;
+	ident = cur;
+	cur = GetNextCh();
+	while (IsLetter(cur) || IsDigit(cur)) {
+		ident += cur;
+		cur = GetNextCh();
+	}
+	if (keyWords.count(ident)) {
+		return new CToken(ttOper, GetOperSy[ident], ident);
+	}
+	return new CToken(ttIdent, ident);
+}
 
 //Получение следующего токена
 CToken* CIO::GetNextToken() {
@@ -33,7 +113,7 @@ CToken* CIO::GetNextToken() {
 	if (cur == -1) cur = GetNextCh();
 	while (cur == ' ' || cur == '\n') cur = GetNextCh();
 	std::string ident;
-
+	
 	switch (cur)
 	{
 
@@ -100,7 +180,7 @@ CToken* CIO::GetNextToken() {
 			stringConst += cur;
 		} while (cur != '\'');
 		cur = GetNextCh();
-		return new CToken(ttConst, null, stringConst, new CStringVariant(stringConst)); //Строковая константа
+		return new CToken(ttConst, new CStringVariant(stringConst), stringConst); //Строковая константа
 	}
 
 	case '+':
@@ -118,64 +198,18 @@ CToken* CIO::GetNextToken() {
 		cur = GetNextCh();
 		return new CToken(ttOper, mulSy, ident);
 
-	case '/': {
-		ident = cur;
-		cur = GetNextCh();
-		if (cur != '/') return new CToken(ttOper, divisionSy, ident); //Деление
-		std::string comment = "//";
-		cur = GetNextCh();
-		while (cur != '\n' && cur != '\0') {
-			comment += cur;
-			cur = GetNextCh();
-		}
-		cur = GetNextCh();
-		return new CToken(ttComment, null, comment); //Однострочный комментарий
-	}
+
 
 	case '=':
 		ident = cur;
 		cur = GetNextCh();
 		return new CToken(ttOper, equalSy, ident);
 
-	case '(': {
-		ident = cur;
-		cur = GetNextCh();
-		if (cur != '*') return new CToken(ttOper, openParSy, ident);
-		cur = GetNextCh();
-		std::string comment = "(*";
-		comment += cur;
 
-		while (true) {
-			while (cur != '*') {
-				cur = GetNextCh();
-				comment += cur;
-			}
-			cur = GetNextCh();
-			comment += cur;
-			if (cur == ')') {
-				cur = GetNextCh();
-				return new CToken(ttComment, null, comment); //Комментарий (*....*)
-			}
-		}
-	}
 	case ')':
 		ident = cur;
 		cur = GetNextCh();
 		return new CToken(ttOper, closeParSy, ident);
-
-
-
-	case '{': {
-		std::string comment = "{";
-
-		while (cur != '}') {
-
-			cur = GetNextCh();
-			comment += cur;
-		}
-		cur = GetNextCh();
-		return new CToken(ttComment, null, comment); //Многострочный комментарий {..}
-	}
 
 	case '[':
 		ident = cur;
@@ -189,50 +223,29 @@ CToken* CIO::GetNextToken() {
 		ident = "..";
 		cur = GetNextCh();
 		return new CToken(ttOper, ellipsisSy, ident);
+
+	case '/': {
+		ident = cur;
+		cur = GetNextCh();
+		return new CToken(ttOper, divisionSy, ident); //Деление
+	}
+
+	case '(': {
+		ident = cur;
+		cur = GetNextCh();
+		return new CToken(ttOper, openParSy, ident);
+
+	}
 	}
 
 	//Считывание числовой константы
-	if (IsDigit(cur)) {
-		double number = 0;
-		while (IsDigit(cur)) {
-			number = number * 10 + (cur - '0');
-			cur = GetNextCh();
-		}
-		if (cur != '.') return new CToken(ttConst, null, std::to_string(int(number)), new CIntVariant(int(number))); //константа типа int
-		cur = GetNextCh();
-		if (cur == '.') {
-			cur = '&';
-			return new CToken(ttConst, null, std::to_string(int(number)), new CIntVariant(int(number)));
+	if (IsDigit(cur)) 
+		return GetDigitConst(1);
 
-		}
-		int count = 0;
-
-		while (IsDigit(cur)) {
-			number = number * 10 + (cur - '0');
-			count++;
-			cur = GetNextCh();
-		}
-		number /= pow(10, count);
-		return new CToken(ttConst, null, std::to_string(number), new CDoubleVariant(number)); //константа типа double
-
-	}
 	//Проверка ключевого слова или переменной 
-	if (IsLetter(cur)) {
-		ident = cur;
-		cur = GetNextCh();
-		while (IsLetter(cur) || IsDigit(cur)) {
-			ident += cur;
-			cur = GetNextCh();
-		}
-		if (keyWords.count(ident)) {
-			if (ident == "div") return new CToken(ttOper, divSy, ident);
-			if (ident == "mod") return new CToken(ttOper, modSy, ident);
-			return new CToken(ttKeyWord, null, ident);
-		}
-		variable.insert(ident);
-		return new CToken(ttIdent, null, ident);
+	if (IsLetter(cur)) 
+		return GetWord();
 
-	}
 	return nullptr;
 }
 

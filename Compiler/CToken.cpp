@@ -25,12 +25,73 @@ void CToken::InitTypeOfOp() {
 	TypeOfOp[commaSy] = "Separator";
 	TypeOfOp[divSy] = "Arithmetic Operators";
 	TypeOfOp[modSy] = "Arithmetic Operators";
+	TypeOfOp[ifsy] = "KeyWord";
+	TypeOfOp[dosy] = "KeyWord";
+	TypeOfOp[ofsy] = "KeyWord";
+	TypeOfOp[orsy] = "KeyWord";
+	TypeOfOp[insy] = "KeyWord";
+	TypeOfOp[tosy] = "KeyWord";
+	TypeOfOp[endsy] = "KeyWord";
+	TypeOfOp[varsy] = "KeyWord";
+	TypeOfOp[divsy] = "Arithmetic Operators";
+	TypeOfOp[andsy] = "KeyWord";
+	TypeOfOp[notsy] = "KeyWord";
+	TypeOfOp[forsy] = "KeyWord";
+	TypeOfOp[modsy] = "Arithmetic Operators";
+	TypeOfOp[setsy] = "KeyWord";
+	TypeOfOp[thensy] = "KeyWord";
+	TypeOfOp[elsesy] = "KeyWord";
+	TypeOfOp[casesy] = "KeyWord";
+	TypeOfOp[filesy] = "KeyWord";
+	TypeOfOp[gotosy] = "KeyWord";
+	TypeOfOp[typesy] = "KeyWord";
+	TypeOfOp[withsy] = "KeyWord";
+	TypeOfOp[charsy] = "KeyWord";
+	TypeOfOp[realsy] = "KeyWord";
+	TypeOfOp[beginsy] = "KeyWord";
+	TypeOfOp[whilesy] = "KeyWord";
+	TypeOfOp[arraysy] = "KeyWord";
+	TypeOfOp[constsy] = "KeyWord";
+	TypeOfOp[labelsy] = "KeyWord";
+	TypeOfOp[untilsy] = "KeyWord";
+	TypeOfOp[doublesy] = "KeyWord";
+	TypeOfOp[stringsy] = "KeyWord";
+	TypeOfOp[downtosy] = "KeyWord";
+	TypeOfOp[packedsy] = "KeyWord";
+	TypeOfOp[recordsy] = "KeyWord";
+	TypeOfOp[repeatsy] = "KeyWord";
+	TypeOfOp[booleansy] = "KeyWord";
+	TypeOfOp[lengthsy] = "KeyWord";
+	TypeOfOp[writelnsy] = "KeyWord";
+	TypeOfOp[readlnsy] = "KeyWord";
+	TypeOfOp[copysy] = "KeyWord";
+	TypeOfOp[programsy] = "KeyWord";
+	TypeOfOp[fuctionsy] = "KeyWord";
+	TypeOfOp[proceduresy] = "KeyWord";
+	TypeOfOp[integersy] = "KeyWord";
+	TypeOfOp[longintsy] = "KeyWord";
 }
 
-CToken::CToken(TokenType _tt, OperationSymbols _op, std::string val, CVariant* _constVal) {
+CToken::CToken(TokenType _tt, OperationSymbols _op, std::string val) {
 	tt = _tt;
 	op = _op;
+	constVal = nullptr;
+	ident = val;
+	InitTypeOfOp();
+}
+
+CToken::CToken(TokenType _tt, CVariant* _constVal, std::string val) {
+	tt = _tt;
+	op = null;
 	constVal = _constVal;
+	ident = val;
+	InitTypeOfOp();
+}
+
+CToken::CToken(TokenType _tt, std::string val) {
+	tt = _tt;
+	op = null;
+	constVal = nullptr;
 	ident = val;
 	InitTypeOfOp();
 }
@@ -43,10 +104,6 @@ std::string CToken::GetTokenType() {
 		return constVal->GetClassType();
 	case ttOper:
 		return TypeOfOp[op];
-	case ttComment:
-		return  "Comment";
-	case ttKeyWord:
-		return "KeyWord";
 	case ttIdent:
 		return "Variable";
 	}

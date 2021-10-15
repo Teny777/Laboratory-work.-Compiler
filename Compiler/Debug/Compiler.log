@@ -1,4 +1,7 @@
 ﻿  CIO.cpp
+  CToken.cpp
+  CVariant.cpp
   main.cpp
   Создание кода...
+D:\Compiler\Compiler\Compiler\CToken.cpp(110): warning C4715: CToken::GetTokenType: значение возвращается не при всех путях выполнения
   Compiler.vcxproj -> D:\Compiler\Compiler\Debug\Compiler.exe
