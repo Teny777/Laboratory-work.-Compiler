@@ -2,14 +2,19 @@
 #include<fstream>
 #include<string>
 #include<set>
+#include<vector>
 #include "CToken.h"
-
+#include "Error.h"
 
 class CIO {
 private:
+	std::vector<Error*> errList; // Список ошибок
 	std::ifstream fin;
+	std::string line;
 	char cur = -1;
 	int ind=0;
+	int row = 1;
+	int errCount = 1;
 
 	//Ключевые слова
 	std::set<std::string> keyWords = {"if","do","of","or","in","to",
@@ -84,6 +89,23 @@ private:
 
 	//Получение слова
 	CToken* GetWord();
+
+	//Обновление строки
+	void UpdateStr(char u);
+
+	//Проверка переполнения константы int
+	bool CheckIntConst(int val);
+
+	//Проверка переполнения константы double
+	bool CheckDoubleConst(double val);
+
+
+	//Проверка идентификатора
+	bool CheckIdent(std::string ident);
+
+
+	//Вывод ошибок
+	void ShowError();
 
 
 public:

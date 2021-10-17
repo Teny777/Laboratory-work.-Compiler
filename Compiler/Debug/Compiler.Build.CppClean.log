@@ -1,9 +1,14 @@
 d:\compiler\compiler\compiler\debug\vc142.pdb
 d:\compiler\compiler\compiler\debug\vc142.idb
 d:\compiler\compiler\compiler\debug\main.obj
+d:\compiler\compiler\compiler\debug\cvariant.obj
+d:\compiler\compiler\compiler\debug\ctoken.obj
+d:\compiler\compiler\compiler\debug\cio.obj
+d:\compiler\compiler\compiler\debug\error.obj
 d:\compiler\compiler\debug\compiler.exe
 d:\compiler\compiler\compiler\debug\compiler.ilk
 d:\compiler\compiler\debug\compiler.pdb
+d:\compiler\compiler\compiler\debug\cio.obj.enc
 d:\compiler\compiler\compiler\debug\compiler.tlog\cl.command.1.tlog
 d:\compiler\compiler\compiler\debug\compiler.tlog\cl.read.1.tlog
 d:\compiler\compiler\compiler\debug\compiler.tlog\cl.write.1.tlog

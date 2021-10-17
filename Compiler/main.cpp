@@ -11,9 +11,9 @@
 int main() {
 	CIO* io = new CIO("test.pas");
 	CToken* cur = nullptr;
-	do {
+	do {		
 		cur = io->GetNextToken();
-		cur->Print();
+		//cur->Print();
 	} while (cur != nullptr);
 
 	delete io;
