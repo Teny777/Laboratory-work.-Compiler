@@ -23,7 +23,7 @@ private:
 										"begin","while", "array", "const", "label", "until","double","string",
 										"downto","packed", "record", "repeat","boolean","length","writeln","readln","copy",
 										"program","fuction","procedure","integer", "longint"};
-	std::map<std::string, OperationSymbols> GetOperSy = {{ "if",ifsy },
+	std::map<std::string, OperationSymbols> GetOperKeySy = {{ "if",ifsy },
 														{ "do",dosy },
 														{ "of",ofsy },
 														{ "or",orsy },
@@ -98,11 +98,6 @@ private:
 
 	//Проверка переполнения константы double
 	bool CheckDoubleConst(double val);
-
-
-	//Проверка идентификатора
-	bool CheckIdent(std::string ident);
-
 
 	//Вывод ошибок
 	void ShowError();

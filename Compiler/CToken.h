@@ -89,7 +89,7 @@ private:
 	TokenType tt;
 	OperationSymbols op;
 	std::map<OperationSymbols, std::string> TypeOfOp;
-	CVariant* constVal;
+	CVariant* constVal;	
 	std::string ident;
 
 	//Инициализация типов у оперций

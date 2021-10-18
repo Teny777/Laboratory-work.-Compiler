@@ -136,13 +136,13 @@ CToken* CIO::GetDigitConst(int sgn) {
 	//ѕроверка на неверно описанную переменную
 	if (IsLetter(cur)) errList.push_back(new LexError(Position(row, ind-len), invalidToken));
 	if (cur != '.') {
-		if (number * sgn > 32767 || number * sgn < -32768) errList.push_back(new LexError(Position(row, ind-len-1), constantOverflow));
+		if (CheckIntConst(number*sgn)) errList.push_back(new LexError(Position(row, ind-len-1), constantOverflow));
 		return new CToken(ttConst, new CIntVariant(int(number * sgn)), std::to_string(int(number * sgn))); //константа типа int
 	}
 	cur = GetNextCh();
 	if (cur == '.') {
 		cur = 35;
-		if (number * sgn > 32767 || number * sgn < -32768) errList.push_back(new LexError(Position(row, ind-len-1), constantOverflow));
+		if (CheckIntConst(number * sgn)) errList.push_back(new LexError(Position(row, ind-len-1), constantOverflow));
 		return new CToken(ttConst, new CIntVariant(int(number * sgn)), std::to_string(int(number * sgn)) );
 
 	}
@@ -157,7 +157,7 @@ CToken* CIO::GetDigitConst(int sgn) {
 	//ѕроверка на неверно описанную переменную
 	if (IsLetter(cur)) errList.push_back(new LexError(Position(row, ind-len), invalidToken));
 	number /= pow(10, count);
-	if (number * sgn > 308 || number * sgn < -324) errList.push_back(new LexError(Position(row, ind - len-1), constantOverflow));
+	if (CheckDoubleConst(number*sgn)) errList.push_back(new LexError(Position(row, ind - len-1), constantOverflow));
 	return new CToken(ttConst, new CDoubleVariant(number * sgn), std::to_string(number * sgn)); //константа типа double
 }
 //ѕолучение слова
@@ -170,9 +170,20 @@ CToken* CIO::GetWord() {
 		cur = GetNextCh();
 	}
 	if (keyWords.count(ident)) {
-		return new CToken(ttOper, GetOperSy[ident], ident);
+		return new CToken(ttOper, GetOperKeySy[ident], ident);
 	}
 	return new CToken(ttIdent, ident);
+}
+
+
+//ѕроверка переполнени€ константы int
+bool CIO::CheckIntConst(int val) {
+	return (val > 32767 || val < -32768);
+}
+
+//ѕроверка переполнени€ константы double
+bool CIO::CheckDoubleConst(double val) {
+	return (val > 308 || val < -324);
 }
 
 //ѕолучение следующего токена

@@ -1,2 +1,4 @@
-﻿  main.cpp
+﻿  CIO.cpp
+D:\Compiler\Compiler\Compiler\CIO.cpp(139,27): warning C4244: аргумент: преобразование "double" в "int", возможна потеря данных
+D:\Compiler\Compiler\Compiler\CIO.cpp(145,28): warning C4244: аргумент: преобразование "double" в "int", возможна потеря данных
   Compiler.vcxproj -> D:\Compiler\Compiler\Debug\Compiler.exe
