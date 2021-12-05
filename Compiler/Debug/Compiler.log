@@ -1,0 +1,12 @@
+﻿  CLexer.cpp
+D:\Андрей\Учеба\ФГиМТ\Compiler\Compiler\CLexer.cpp(48,21): warning C4244: аргумент: преобразование "double" в "int", возможна потеря данных
+D:\Андрей\Учеба\ФГиМТ\Compiler\Compiler\CLexer.cpp(52,46): warning C4244: аргумент: преобразование "double" в "int", возможна потеря данных
+D:\Андрей\Учеба\ФГиМТ\Compiler\Compiler\CLexer.cpp(60,21): warning C4244: аргумент: преобразование "double" в "int", возможна потеря данных
+D:\Андрей\Учеба\ФГиМТ\Compiler\Compiler\CLexer.cpp(65,46): warning C4244: аргумент: преобразование "double" в "int", возможна потеря данных
+  CToken.cpp
+  CVariant.cpp
+  Syntax.cpp
+  main.cpp
+  Создание кода...
+D:\Андрей\Учеба\ФГиМТ\Compiler\Compiler\CToken.cpp(114): warning C4715: CToken::GetTokenType: значение возвращается не при всех путях выполнения
+  Compiler.vcxproj -> D:\Андрей\Учеба\ФГиМТ\Compiler\Debug\Compiler.exe
