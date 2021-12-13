@@ -1,7 +1,10 @@
 #include "ErrorManager.h"
-
-void ErrorManager::AddError(std::string ident, ErrorCode errCode, position pos) {
-	errors.push_back(new Error(pos, errCode, ident));
+#include<algorithm>
+void ErrorManager::AddError( ErrorCode errCode, position pos) {
+	if (!positionError[pos]) {
+		errors.push_back(new Error(pos, errCode));
+		positionError[pos] = true;
+	}
 }
 
 
@@ -11,4 +14,9 @@ Error* ErrorManager::GetError() {
 	curError = errors.front();
 	errors.pop_front();
 	return curError;
+}
+
+void ErrorManager::SortError() {
+	auto cmp = [](Error* a, Error* b) {return *a < *b; };
+	sort(errors.begin(), errors.end(),cmp);
 }

@@ -1,9 +1,9 @@
 #pragma once
 #include "CIO.h"
 #include "CToken.h"
-#include "ErrorManager.h"
 #include<map>
 #include<set>
+#include<string>
 
 class CLexer {
 private:
@@ -30,21 +30,16 @@ private:
 														{ "goto",gotosy },
 														{ "type",typesy },
 														{ "with",withsy },
-														{ "char",charsy },
-														{ "real",realsy },
 														{ "begin",beginsy },
 														{ "while",whilesy },
 														{ "array",arraysy },
 														{ "const",constsy },
 														{ "label",labelsy },
 														{ "until",untilsy },
-														{ "double",doublesy },
-														{ "string",stringsy },
 														{ "downto",downtosy },
 														{ "packed",packedsy },
 														{ "record",recordsy },
 														{ "repeat",repeatsy },
-														{ "boolean",booleansy },
 														{ "length",lengthsy },
 														{ "writeln",writelnsy },
 														{ "readln",readlnsy },
@@ -52,17 +47,16 @@ private:
 														{ "program",programsy },
 														{ "function",fuctionsy },
 														{ "procedure",proceduresy },
-														{ "integer",integersy },
-														{ "longint",longintsy }
+	
 	};
 
 	//Ключевые слова
 	std::set<std::string> keyWords = { "if","do","of","or","in","to",
 									"end","var", "div", "and", "not", "for", "mod","set",
-									"then","else", "case", "file", "goto", "type", "with","char","real",
-									"begin","while", "array", "const", "label", "until","double","string",
-									"downto","packed", "record", "repeat","boolean","length","writeln","readln","copy",
-									"program","fuction","procedure","integer", "longint" };
+									"then","else", "case", "file", "goto", "type", "with",
+									"begin","while", "array", "const", "label", "until",
+									"downto","packed", "record", "repeat","length","writeln","readln","copy",
+									"program","fuction","procedure" };
 
 	//Проверка на букву
 	bool IsLetter(char cur);
@@ -79,12 +73,15 @@ private:
 	//Менеджер ошибок
 	ErrorManager* errManager;
 
+	//Неверный идентификатор
+	CToken* IncorrectIdent(std::string ident);
+
 	bool CheckIntConst(int val);
 
 	bool CheckDoubleConst(double val);
 
 public:
-	CLexer(CIO* _IO, ErrorManager* _errManager);
+	CLexer(CIO* io, ErrorManager* _errManager);
 	CToken* GetNextToken();
 	~CLexer();
 };

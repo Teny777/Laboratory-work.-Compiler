@@ -1,5 +1,4 @@
 ﻿#include "CToken.h"
-#include "Position.h"
 #include<iostream>
 
 //Инициализация типов операции
@@ -24,8 +23,6 @@ void CToken::InitTypeOfOp() {
 	TypeOfOp[openIndSy] = "Separator";
 	TypeOfOp[closeIndSy] = "Separator";
 	TypeOfOp[commaSy] = "Separator";
-	TypeOfOp[divSy] = "Arithmetic Operators";
-	TypeOfOp[modSy] = "Arithmetic Operators";
 	TypeOfOp[ifsy] = "KeyWord";
 	TypeOfOp[dosy] = "KeyWord";
 	TypeOfOp[ofsy] = "KeyWord";
@@ -47,21 +44,16 @@ void CToken::InitTypeOfOp() {
 	TypeOfOp[gotosy] = "KeyWord";
 	TypeOfOp[typesy] = "KeyWord";
 	TypeOfOp[withsy] = "KeyWord";
-	TypeOfOp[charsy] = "KeyWord";
-	TypeOfOp[realsy] = "KeyWord";
 	TypeOfOp[beginsy] = "KeyWord";
 	TypeOfOp[whilesy] = "KeyWord";
 	TypeOfOp[arraysy] = "KeyWord";
 	TypeOfOp[constsy] = "KeyWord";
 	TypeOfOp[labelsy] = "KeyWord";
 	TypeOfOp[untilsy] = "KeyWord";
-	TypeOfOp[doublesy] = "KeyWord";
-	TypeOfOp[stringsy] = "KeyWord";
 	TypeOfOp[downtosy] = "KeyWord";
 	TypeOfOp[packedsy] = "KeyWord";
 	TypeOfOp[recordsy] = "KeyWord";
 	TypeOfOp[repeatsy] = "KeyWord";
-	TypeOfOp[booleansy] = "KeyWord";
 	TypeOfOp[lengthsy] = "KeyWord";
 	TypeOfOp[writelnsy] = "KeyWord";
 	TypeOfOp[readlnsy] = "KeyWord";
@@ -69,8 +61,7 @@ void CToken::InitTypeOfOp() {
 	TypeOfOp[programsy] = "KeyWord";
 	TypeOfOp[fuctionsy] = "KeyWord";
 	TypeOfOp[proceduresy] = "KeyWord";
-	TypeOfOp[integersy] = "KeyWord";
-	TypeOfOp[longintsy] = "KeyWord";
+
 }
 
 CToken::CToken(TokenType _tt, OperationSymbols _op, std::string val,position _pos) {
@@ -110,6 +101,8 @@ std::string CToken::GetTokenType() {
 		return TypeOfOp[op];
 	case ttIdent:
 		return "Variable";
+	case ttSpec:
+		return "Special";
 	}
 }
 
@@ -119,7 +112,16 @@ void CToken::Print() {
 	std::cout << "Type: " << GetTokenType() << "\nValue: " << ident << '\n' << '\n';
 }
 
+
+std::string CToken::GetIdent() {
+	return ident;
+}
+
 CToken::~CToken() {
 	delete constVal;
 }
 
+//Получение позиции
+position CToken::GetPosition() {
+	return pos;
+}

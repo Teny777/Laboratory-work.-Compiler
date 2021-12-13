@@ -9,7 +9,7 @@ CIntVariant::CIntVariant(int _val) {
 }
 
 std::string CIntVariant::GetClassType() {
-	return "IntConst";
+	return "integer";
 }
 
 
@@ -25,7 +25,7 @@ CDoubleVariant::CDoubleVariant(double _val) {
 }
 
 std::string CDoubleVariant::GetClassType() {
-	return "DoubleConst";
+	return "double";
 }
 
 
@@ -41,7 +41,7 @@ CStringVariant::CStringVariant(std::string _val) {
 }
 
 std::string CStringVariant::GetClassType() {
-	return "StringConst";
+	return "string";
 }
 
 std::string CStringVariant::GetValue() {

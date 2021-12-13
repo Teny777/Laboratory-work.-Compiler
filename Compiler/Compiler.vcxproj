@@ -142,21 +142,24 @@
     <ClCompile Include="CIO.cpp" />
     <ClCompile Include="CLexer.cpp" />
     <ClCompile Include="CToken.cpp" />
+    <ClCompile Include="CType.cpp" />
     <ClCompile Include="CVariant.cpp" />
     <ClCompile Include="Error.cpp" />
     <ClCompile Include="ErrorManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Syntax.cpp" />
+    <ClCompile Include="CCompiler.cpp" />
+    <ClCompile Include="Position.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CIO.h" />
     <ClInclude Include="CLexer.h" />
     <ClInclude Include="CToken.h" />
+    <ClInclude Include="CType.h" />
     <ClInclude Include="CVariant.h" />
     <ClInclude Include="Error.h" />
     <ClInclude Include="ErrorManager.h" />
     <ClInclude Include="Position.h" />
-    <ClInclude Include="Syntax.h" />
+    <ClInclude Include="CCompiler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

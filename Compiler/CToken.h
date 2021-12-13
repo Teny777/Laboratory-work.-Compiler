@@ -34,8 +34,6 @@ enum OperationSymbols {
 	closeParSy,//)
 	openIndSy,//[
 	closeIndSy,//]
-	divSy,// div
-	modSy, // mod
 	commaSy, //,
 	ifsy,
 	dosy,
@@ -58,21 +56,16 @@ enum OperationSymbols {
 	gotosy,
 	typesy,
 	withsy,
-	charsy,
-	realsy,
 	beginsy,
 	whilesy,
 	arraysy,
 	constsy,
 	labelsy,
 	untilsy,
-	doublesy,
-	stringsy,
 	downtosy,
 	packedsy,
 	recordsy,
 	repeatsy,
-	booleansy,
 	lengthsy,
 	writelnsy,
 	readlnsy,
@@ -80,8 +73,6 @@ enum OperationSymbols {
 	programsy,
 	fuctionsy,
 	proceduresy,
-	integersy,
-	longintsy
 };
 
 
@@ -96,17 +87,21 @@ private:
 	//Инициализация типов операции
 	void InitTypeOfOp();
 
-	//Получение типа токена
-	std::string GetTokenType();
+
 
 public:
+
+	//Получение типа токена
+	std::string GetTokenType();
 	CVariant* constVal;
 	TokenType tt;
 	OperationSymbols op;
 	CToken(TokenType _tt, OperationSymbols _op, std::string val,position _pos);
 	CToken(TokenType _tt, CVariant* _constVal, std::string val,position _pos);
 	CToken(TokenType _tt, std::string val,position _pos);
+	position GetPosition();
 	void Print();
+	std::string GetIdent();
 	~CToken();
 
 	

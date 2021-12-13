@@ -36,7 +36,13 @@
     <ClCompile Include="Error.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Syntax.cpp">
+    <ClCompile Include="CCompiler.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="CType.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Position.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,7 +68,10 @@
     <ClInclude Include="Position.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Syntax.h">
+    <ClInclude Include="CCompiler.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="CType.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

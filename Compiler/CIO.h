@@ -1,16 +1,17 @@
 #pragma once
 #include<string>
 #include<fstream>
-#include "Position.h"
+#include<vector>
 #include "ErrorManager.h"
-class ErrorManager;
+
 
 class CIO {
 
 private:
 	std::ifstream fin;
 	position pos;
-	std::string line,prevline;
+	std::string line;
+	std::vector<std::string> programText;
 	
 public:
 	//Получение следующей литеры

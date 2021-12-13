@@ -1,11 +1,9 @@
 ﻿#include "CLexer.h"
-#include "CIO.h"
 #include<string>
-#include "ErrorManager.h"
 
 
-CLexer::CLexer(CIO * _IO,ErrorManager* _errManager) {
-	IO = _IO;
+CLexer::CLexer(CIO* io,ErrorManager* _errManager) {
+	IO = io;
 	errManager = _errManager;
 }
 
@@ -19,6 +17,17 @@ bool CLexer :: IsLetter(char cur) {
 bool CLexer :: IsDigit(char cur) {
 	return cur >= '0' && cur <= '9';
 }
+
+//Неверный идентификатор
+CToken* CLexer::IncorrectIdent(std::string ident) {
+	while (IsLetter(curLiter) || IsDigit(curLiter)) {
+		ident += curLiter;
+		curLiter = IO->GetNextCh();
+	}
+	errManager->AddError(invalidIdent, IO->GetPrevPosition());
+	return new CToken(ttSpec, ident, IO->GetPrevPosition());
+}
+
 //Пролучение слова
 CToken* CLexer ::GetWord() {
 	std::string ident;
@@ -37,46 +46,53 @@ CToken* CLexer ::GetWord() {
 
 
 CToken* CLexer::GetDigitConst() {
-	double number = 0;
+	std::string number = "";
 	while (IsDigit(curLiter)) {
-		number = number * 10 + (curLiter - '0');
+		number += curLiter;
 		curLiter = IO->GetNextCh();
 	}
 
+	//Неверный идентификатор
+	if (IsLetter(curLiter))
+		return IncorrectIdent(number);
+
+
 	if (curLiter != '.') 
 	{
-		if (CheckIntConst(number)) {
-			errManager->AddError(std::to_string(int(number)), constantOverflow, IO->GetPrevPosition());
-			return new CToken(ttSpec, std::to_string(int(number)), IO->GetPrevPosition());
+		if (CheckIntConst(std::stoi(number))) {
+			errManager->AddError( constantOverflow, IO->GetPrevPosition());
+			return new CToken(ttSpec, number, IO->GetPrevPosition());
 		}
-		return new CToken(ttConst, new CIntVariant(number), std::to_string(int(number)),IO->GetPrevPosition()); //Константа int
+		return new CToken(ttConst, new CIntVariant(std::stoi(number)), number,IO->GetPrevPosition()); //Константа int
 	}
-
 	curLiter = IO->GetNextCh();
 
 	//Для перечисления ..
 	if (curLiter == '.') {
 		
-		if (CheckIntConst(number)) {
-			errManager->AddError(std::to_string(int(number)), constantOverflow, IO->GetPrevPosition());
-			return new CToken(ttSpec, std::to_string(int(number)), IO->GetPrevPosition());
+		if (CheckIntConst(std::stoi(number))) {
+			errManager->AddError( constantOverflow, IO->GetPrevPosition());
+			return new CToken(ttSpec, number, IO->GetPrevPosition());
 		}
 		curLiter = 35;
-		return new CToken(ttConst, new CIntVariant(number), std::to_string(int(number)), IO->GetPrevPosition());
+		return new CToken(ttConst, new CIntVariant(std::stoi(number)), number, IO->GetPrevPosition());
 	}
 
-	int count = 0;
+	number += '.';
+
 	while (IsDigit(curLiter)) {
-		number = number * 10 + (curLiter - '0');
+		number += curLiter;
 		curLiter = IO->GetNextCh();
-		count++;
 	}
-	number /= pow(10, count);
-	if (CheckDoubleConst(number)) {
-		errManager->AddError(std::to_string(number), constantOverflow, IO->GetPrevPosition());
-		return new CToken(ttSpec, std::to_string(number), IO->GetPrevPosition());
+	//Неверный идентификатор
+	if (IsLetter(curLiter))
+		return IncorrectIdent(number);
+
+	if (CheckDoubleConst(std::stod(number))) {
+		errManager->AddError( constantOverflow, IO->GetPrevPosition());
+		return new CToken(ttSpec, number, IO->GetPrevPosition());
 	}
-	return new CToken(ttConst, new CDoubleVariant(number), std::to_string(number), IO->GetPrevPosition()); //Константа double
+	return new CToken(ttConst, new CDoubleVariant(std::stod(number)), number, IO->GetPrevPosition()); //Константа double
 }
 
 
@@ -242,12 +258,12 @@ CToken* CLexer::GetNextToken() {
 	if (IsDigit(curLiter)) return GetDigitConst();
 
 	if (curLiter != '\0') {
-		errManager->AddError(ident, invalidCharacter, IO->GetPosition());
+		errManager->AddError( invalidCharacter, IO->GetPosition());
 		curLiter = IO->GetNextCh();
 		return new CToken(ttSpec, ident, IO->GetPrevPosition());
 	}
 
-	return nullptr;
+	return new CToken(ttSpec, ident, IO->GetPrevPosition());
 }
 
 

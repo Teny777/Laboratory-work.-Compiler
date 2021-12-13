@@ -1,9 +1,8 @@
 #include "Error.h"
 
-Error::Error(position _pos, ErrorCode _code,std::string _ident) {
+Error::Error(position _pos, ErrorCode _code) {
 	pos = _pos;
 	code = _code;
-	ident = _ident;
 }
 
 
@@ -21,6 +20,24 @@ std::string Error::GetDecryptionOfError() {
 	return DecryptionOfError[code];
 }
 
-std::string Error::GetIdent() {
-	return ident;
+
+
+bool Error::operator<(const Error& err) const {
+	return pos<err.pos;
+}
+bool  Error :: operator>(const Error& err) const {
+	return pos > err.pos;
+}
+bool  Error :: operator ==(const Error& err) const {
+	return pos==err.pos;
+}
+
+bool  Error :: operator<=(const Error& err) const {
+	return pos<=err.pos;
+}
+bool  Error :: operator>=(const Error& err) const {
+	return  pos >= err.pos;
+}
+bool Error :: operator !=(const Error& err) const {
+	return  pos != err.pos;
 }
