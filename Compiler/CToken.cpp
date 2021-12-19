@@ -1,10 +1,11 @@
-﻿#include "CToken.h"
+﻿#include "pch.h"
+#include "CToken.h"
 #include<iostream>
 
 //Инициализация типов операции
 void CToken::InitTypeOfOp() {
 	TypeOfOp[assignmentSy] = "Assignment";
-	TypeOfOp[descriptionOfTypesSy] = "Description Of Types";
+	TypeOfOp[descriptionOfTypesSy] = "Separator";
 	TypeOfOp[notEqualSy] = "Comparison";
 	TypeOfOp[lessEqualSy] = "Comparison";
 	TypeOfOp[lessSy] = "Comparison";
@@ -64,7 +65,7 @@ void CToken::InitTypeOfOp() {
 
 }
 
-CToken::CToken(TokenType _tt, OperationSymbols _op, std::string val,position _pos) {
+CToken::CToken(TokenType _tt, OperationSymbols _op, std::string val, position _pos) {
 	tt = _tt;
 	op = _op;
 	constVal = nullptr;
@@ -93,7 +94,7 @@ CToken::CToken(TokenType _tt, std::string val, position _pos) {
 
 
 // Получение типа токена
-std::string CToken::GetTokenType() {
+std::string CToken::GetTokenTypeName() {
 	switch (tt) {
 	case ttConst:
 		return constVal->GetClassType();
@@ -108,8 +109,8 @@ std::string CToken::GetTokenType() {
 
 
 void CToken::Print() {
-	if (!this||tt==ttSpec) return;
-	std::cout << "Type: " << GetTokenType() << "\nValue: " << ident << '\n' << '\n';
+	if (!this) return;
+	std::cout << "Type: " << GetTokenTypeName() << "\nValue: " << ident << '\n' << '\n';
 }
 
 
@@ -124,4 +125,17 @@ CToken::~CToken() {
 //Получение позиции
 position CToken::GetPosition() {
 	return pos;
+}
+
+
+CVariant* CToken::GetConst() {
+	return constVal;
+}
+
+TokenType CToken::GetTokenType() {
+	return tt;
+}
+
+OperationSymbols CToken::GetOperationSymbol() {
+	return op;
 }

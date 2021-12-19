@@ -1,74 +1,93 @@
-#pragma once
+п»їРїВ»С—#pragma once
+#include "pch.h"
 #include<string>
 #include <set>
+#include <vector>
 #include "CLexer.h"
 #include "CToken.h"
 #include "ErrorManager.h"
 #include "CType.h"
 
+using namespace System;
+using namespace System::IO;
+using namespace System::Reflection;
+using namespace System::Reflection::Emit;
+
 class CCompiler {
-
-
 
 private:
 
-	std::map<std::string, CType*> availableTypes = { // Допустимые типы
-	{"integer",new CIntType(et_integer)},
-	{"double",new CDoubleType(et_double)},
-	{"string",new CStringType(et_string)},
-	{"boolean",new CBoolType(et_bool)}
-	};
-	std::map<std::string, CType*> availableVariables; // Допустимые переменные
-	std::map<std::string, bool> variablesError; // Ошибки переменных
-
-	CType* deriveTo(CType* left, CType* right);
 
 	CLexer* lexer;
 	CToken* curToken;
 	ErrorManager* errManager;
 
+	std::map<std::string, CType*> availableTypes = { // Р”РѕРїСѓСЃС‚РёРјС‹Рµ С‚РёРїС‹
+	{"integer",new CIntType(et_integer)},
+	{"double",new CDoubleType(et_double)},
+	{"string",new CStringType(et_string)},
+	{"boolean",new CBoolType(et_bool)}
+	};
+	std::map<std::string, CType*> availableVariables; // Р”РѕРїСѓСЃС‚РёРјС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ
+	std::map<std::string, int> indexVariables; //РРЅРґРµРєСЃС‹ РїРµСЂРµРјРµРЅРЅС‹С… (РґР»СЏ РіРµРЅРµСЂР°С‚РѕСЂР°)
+	std::map<std::string, bool> variablesError;  // РћС€РёР±РєРё РїРµСЂРµРјРµРЅРЅС‹С…
+
+	CType* deriveTo(CType* left, CType* right);
+
+	// РџСЂРѕРІРµСЂРєР° РЅР° РѕРґРЅСѓ РёР· РѕРїРµСЂР°С†РёР№
+	bool isOper(std::vector<OperationSymbols> arrayOp);
+
+
 	void accept(OperationSymbols op);
+
 	void accept(TokenType _tt);
 
-	void block(); //блок
+	void block(ILGenerator^ il); //Р±Р»РѕРє
 
-	void varpart(); //раздел переменных
+	void varpart(ILGenerator^ il); //СЂР°Р·РґРµР» РїРµСЂРµРјРµРЅРЅС‹С…
 
-	void sametype(); //описание однотипных переменных
+	void sametype(ILGenerator^ il); //РѕРїРёСЃР°РЅРёРµ РѕРґРЅРѕС‚РёРїРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С…
 
-	CType* type(); //тип
+	CType* type(); //С‚РёРї
 
-	void operatorssection(); //раздел операторов
+	void operatorssection(ILGenerator^ il); //СЂР°Р·РґРµР» РѕРїРµСЂР°С‚РѕСЂРѕРІ
 
-	void compoundoperator(); // составной оператор
+	void compoundoperator(ILGenerator^ il); // СЃРѕСЃС‚Р°РІРЅРѕР№ РѕРїРµСЂР°С‚РѕСЂ
 
-	void ooperator(); // оператор
+	void ooperator(ILGenerator^ il); // РѕРїРµСЂР°С‚РѕСЂ
 
-	void unlabeledoperator(); //непомеченный оператор
+	void unlabeledoperator(ILGenerator^ il); //РЅРµРїРѕРјРµС‡РµРЅРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ
 
-	void simpleoperator(); //простой оператор
+	void simpleoperator(ILGenerator^ il); //РїСЂРѕСЃС‚РѕР№ РѕРїРµСЂР°С‚РѕСЂ
 
-	void complexoperator(); //сложный оператор
+	void complexoperator(ILGenerator^ il);  //СЃР»РѕР¶РЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ
 
-	void assignmentoperator(); //оператор присваивания
+	void assignmentoperator(ILGenerator^ il); //РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ
 
-	CType* expression(); //выражение
+	CType* expression(ILGenerator^ il); //РІС‹СЂР°Р¶РµРЅРёРµ
 
-	CType* simpleexpression(); //простое выражение
+	CType* simpleexpression(ILGenerator^ il); //РїСЂРѕСЃС‚РѕРµ РІС‹СЂР°Р¶РµРЅРёРµ
 
-	CType* summand(); //слагаемое
+	CType* summand(ILGenerator^ il); //СЃР»Р°РіР°РµРјРѕРµ
 
-	CType* factor(); //множитель
+	CType* factor(ILGenerator^ il); //РјРЅРѕР¶РёС‚РµР»СЊ
 
-	void selectingoperator(); //выбирающий оператор
+	void selectingoperator(ILGenerator^ il); //РІС‹Р±РёСЂР°СЋС‰РёР№ РѕРїРµСЂР°С‚РѕСЂ
 
-	void cycleoperator(); //оператор цикла
+	void cycleoperator(ILGenerator^ il); //РѕРїРµСЂР°С‚РѕСЂ С†РёРєР»Р°
 
-	void conditionaloperator(); //условный оператор
+	void conditionaloperator(ILGenerator^ il); //СѓСЃР»РѕРІРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ
 
-	void whilepart(); //цикл с предусловием
+	void whilepart(ILGenerator^ il); ///С†РёРєР» СЃ РїСЂРµРґСѓСЃР»РѕРІРёРµРј
+
+	void procedureoperator(ILGenerator^ il); // РѕРїРµСЂР°С‚РѕСЂ РїСЂРѕС†РµРґСѓСЂС‹
+
+	void parameter(ILGenerator^ il); //РџР°СЂР°РјРµС‚СЂ
 
 public:
-	CCompiler (CLexer* _lexer,ErrorManager* _errManager);
-	void CheckProgram();
+	CCompiler(CIO* io, ErrorManager* _errManager);
+
+	void CheckProgram(ILGenerator^ il);
+
+	~CCompiler();
 };

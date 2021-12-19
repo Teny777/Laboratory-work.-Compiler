@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include<string>
 #include<map>
 #include "CVariant.h"
@@ -72,37 +73,56 @@ enum OperationSymbols {
 	copysy,
 	programsy,
 	fuctionsy,
-	proceduresy,
+	proceduresy
 };
 
 
 class CToken {
 private:
 
-	
+
 	std::map<OperationSymbols, std::string> TypeOfOp;
-	
+
 	std::string ident;
+
 	position pos;
+
 	//Инициализация типов операции
 	void InitTypeOfOp();
 
+	CVariant* constVal;
+
+	TokenType tt;
+
+	OperationSymbols op;
+
+	//Получение названия токена
+	std::string GetTokenTypeName();
 
 
 public:
 
-	//Получение типа токена
-	std::string GetTokenType();
-	CVariant* constVal;
-	TokenType tt;
-	OperationSymbols op;
-	CToken(TokenType _tt, OperationSymbols _op, std::string val,position _pos);
-	CToken(TokenType _tt, CVariant* _constVal, std::string val,position _pos);
-	CToken(TokenType _tt, std::string val,position _pos);
-	position GetPosition();
-	void Print();
-	std::string GetIdent();
-	~CToken();
+	CToken(TokenType _tt, OperationSymbols _op, std::string val, position _pos);
+	CToken(TokenType _tt, CVariant* _constVal, std::string val, position _pos);
+	CToken(TokenType _tt, std::string val, position _pos);
 
-	
+	//Получение позиции
+	position GetPosition();
+
+	//Вывод токена
+	void Print();
+
+	//Получение лексемы
+	std::string GetIdent();
+
+	//Получение константы
+	CVariant* GetConst();
+
+	//Получение типа токена
+	TokenType GetTokenType();
+
+	//Получение кода операции
+	OperationSymbols GetOperationSymbol();
+
+	~CToken();
 };

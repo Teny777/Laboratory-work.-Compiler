@@ -1,5 +1,7 @@
 ﻿#pragma once
+
 #include<string>
+
 
 class CVariant {
 public:
@@ -40,6 +42,4 @@ public:
 	CStringVariant(std::string _val);
 	std::string GetClassType() override;
 	std::string GetValue();
-
-
 };

@@ -1,6 +1,8 @@
-﻿#include "CVariant.h"
+﻿#include "pch.h"
+#include "CVariant.h"
 #include"CToken.h"
 #include<string>
+
 
 
 // Константа типа int
@@ -18,7 +20,6 @@ int CIntVariant::GetValue() {
 }
 
 
-
 // Константа типа double
 CDoubleVariant::CDoubleVariant(double _val) {
 	value = _val;
@@ -32,7 +33,6 @@ std::string CDoubleVariant::GetClassType() {
 double CDoubleVariant::GetValue() {
 	return value;
 }
-
 
 
 // Константа типа string

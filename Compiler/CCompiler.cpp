@@ -1,3 +1,4 @@
+п»ї#include "pch.h"
 #include "CCompiler.h"
 #include <iostream>
 #include <vector>
@@ -5,13 +6,20 @@
 #include<string>
 
 
-CType* CCompiler::deriveTo(CType* left, CType* right) {
+using namespace System;
+using namespace System::IO;
+using namespace System::Reflection;
+using namespace System::Reflection::Emit;
+
+
+CType *CCompiler::deriveTo(CType* left, CType* right) {
+
 	if (left == right || left->type == et_integer && right->type == et_double) return right;
-    return left;
+	return left;
 }
 
-CCompiler::CCompiler(CLexer* _lexer,ErrorManager* _errManager) {
-	lexer =_lexer;
+CCompiler::CCompiler(CIO* _io, ErrorManager* _errManager) {
+	lexer = new CLexer(_io,_errManager);
 	errManager = _errManager;
 	curToken = lexer->GetNextToken();
 }
@@ -20,56 +28,86 @@ void error() {
 	std::cout << "Bad\n";
 }
 
-void CCompiler:: accept(OperationSymbols oper) {
-	if (curToken->op != oper) error();
+// РџСЂРѕРІРµСЂРєР° РЅР° РѕРґРЅСѓ РёР· РѕРїРµСЂР°С†РёР№
+bool CCompiler::isOper(std::vector<OperationSymbols> arrayOp) {
+	OperationSymbols curOp = curToken->GetOperationSymbol();
+	for (auto op : arrayOp)
+		if (curOp == op) return true;
+	return false;
+}
+
+void CCompiler::accept(OperationSymbols oper) {
+	if (curToken->GetOperationSymbol() != oper) error();
 	curToken = lexer->GetNextToken();
 }
 
-void CCompiler:: accept(TokenType _tt) {
-	if(curToken->tt!=_tt)  error();
+void CCompiler::accept(TokenType _tt) {
+	if (curToken->GetTokenType() != _tt)  error();
 	curToken = lexer->GetNextToken();
 }
 
-//проверка программы
-void CCompiler::CheckProgram() {
-	/*<программа>:: = program <имя>; <блок>.*/
+//РїСЂРѕРІРµСЂРєР° РїСЂРѕРіСЂР°РјРјС‹
+void CCompiler::CheckProgram(ILGenerator^ il) {
+	/*<РїСЂРѕРіСЂР°РјРјР°>:: = program <РёРјСЏ>; <Р±Р»РѕРє>.*/
 
 	accept(programsy);
 	accept(ttIdent);
 	accept(semicolonSy);
-	block();
+	block(il);
 	accept(pointSy);
 }
 
 
-//блок
-void CCompiler::block() {
-	/*<блок>:: = <раздел переменных> <раздел операторов>*/
-	varpart();
-	operatorssection();
+//Р±Р»РѕРє
+void CCompiler::block(ILGenerator^ il) {
+	/*<Р±Р»РѕРє>:: = <СЂР°Р·РґРµР» РїРµСЂРµРјРµРЅРЅС‹С…> <СЂР°Р·РґРµР» РѕРїРµСЂР°С‚РѕСЂРѕРІ>*/
+	varpart(il);
+	operatorssection(il);
 }
 
-//раздел переменных
-void CCompiler::varpart() {
-	/*<раздел переменных>:: = var <описание однотипных переменных>;
-	{<описание однотипных переменных>; }*/
+//СЂР°Р·РґРµР» РїРµСЂРµРјРµРЅРЅС‹С…
+void CCompiler::varpart(ILGenerator^ il) {
+	/*<СЂР°Р·РґРµР» РїРµСЂРµРјРµРЅРЅС‹С…>:: = var <РѕРїРёСЃР°РЅРёРµ РѕРґРЅРѕС‚РёРїРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С…>;
+	{<РѕРїРёСЃР°РЅРёРµ РѕРґРЅРѕС‚РёРїРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С…>; }*/
 
 	accept(varsy);
-	sametype();
+	sametype(il);
 	accept(semicolonSy);
-	while (curToken->tt == ttIdent) {
-		sametype();
+	while (curToken->GetTokenType()== ttIdent) {
+		sametype(il);
 		accept(semicolonSy);
 	}
 }
 
-//описание однотипных переменных
-void CCompiler::sametype() {
-	/*<описание однотипных переменных>:: = <имя>{ ,<имя> }:<тип>*/
+
+
+//Р”РѕР±Р°РІРёС‚СЊ РїРµСЂРµРјРµРЅРЅСѓСЋ РІ IL
+void AddVariable(CType* _type, ILGenerator^ il) {
+	switch (_type->type)
+	{
+	case et_bool:
+		il->DeclareLocal(bool::typeid);
+		break;
+	case et_integer:
+		il->DeclareLocal(Int32::typeid);
+		break;
+	case et_string:
+		il->DeclareLocal(String::typeid);
+		break;
+	case et_double:
+		il->DeclareLocal(Double::typeid);
+		break;
+	}
+}
+
+
+//РѕРїРёСЃР°РЅРёРµ РѕРґРЅРѕС‚РёРїРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С…
+void CCompiler::sametype(ILGenerator^ il) {
+	/*<РѕРїРёСЃР°РЅРёРµ РѕРґРЅРѕС‚РёРїРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С…>:: = <РёРјСЏ>{ ,<РёРјСЏ> }:<С‚РёРї>*/
 	std::vector<CToken*> variables;
 	variables.push_back(curToken);
 	accept(ttIdent);
-	while (curToken->op == commaSy) {
+	while (curToken->GetOperationSymbol() == commaSy) {
 		curToken = lexer->GetNextToken();
 		variables.push_back(curToken);
 		accept(ttIdent);
@@ -77,203 +115,364 @@ void CCompiler::sametype() {
 
 
 	accept(descriptionOfTypesSy);
-	CType * _type = type();
-	if (_type) {	
+	CType* _type = type();
+	if (_type) {
 		for (auto variable : variables) {
+
 			if (availableVariables[variable->GetIdent()] && !variablesError[variable->GetIdent()]) {
-				errManager->AddError( repeatVariable, variable->GetPosition());
+				errManager->AddError(repeatVariable, variable->GetPosition());
 				variablesError[variable->GetIdent()] = true;
 				continue;
 			}
+
 			availableVariables[variable->GetIdent()] = _type;
+			indexVariables[variable->GetIdent()] = (int)indexVariables.size()-1;
+			AddVariable(_type, il); // Р”РѕР±Р°РІРёС‚СЊ РїРµСЂРµРјРµРЅРЅСѓСЋ РІ IL			
 		}
 	}
-	else errManager->AddError( invalidType, curToken->GetPosition());
+	else errManager->AddError(invalidType, curToken->GetPosition());
 	curToken = lexer->GetNextToken();
 
-
 }
 
-//тип
+//С‚РёРї
 CType* CCompiler::type() {
-	/*<тип>:: = <имя типа>*/
+	/*<С‚РёРї>:: = <РёРјСЏ С‚РёРїР°>*/
 	return availableTypes[curToken->GetIdent()];
-	
+
 }
 
-//раздел операторов
-void CCompiler::operatorssection() {
-	/*<раздел операторов>:: = <составной оператор>*/
+//СЂР°Р·РґРµР» РѕРїРµСЂР°С‚РѕСЂРѕРІ
+void CCompiler::operatorssection(ILGenerator^ il) {
+	/*<СЂР°Р·РґРµР» РѕРїРµСЂР°С‚РѕСЂРѕРІ>:: = <СЃРѕСЃС‚Р°РІРЅРѕР№ РѕРїРµСЂР°С‚РѕСЂ>*/
 
-	compoundoperator();
+	compoundoperator(il);
 }
 
-// составной оператор
-void CCompiler::compoundoperator() {
-	/*<составной оператор>:: = begin <оператор>{ ; <оператор> } end*/
+// СЃРѕСЃС‚Р°РІРЅРѕР№ РѕРїРµСЂР°С‚РѕСЂ
+void CCompiler::compoundoperator(ILGenerator^ il) {
+	/*<СЃРѕСЃС‚Р°РІРЅРѕР№ РѕРїРµСЂР°С‚РѕСЂ>:: = begin <РѕРїРµСЂР°С‚РѕСЂ>{ ; <РѕРїРµСЂР°С‚РѕСЂ> } end*/
 
 	accept(beginsy);
-	ooperator();
-	while (curToken->op == semicolonSy) {
+	ooperator(il);
+	while (curToken->GetOperationSymbol() == semicolonSy) {
 		curToken = lexer->GetNextToken();
-		ooperator();
+		ooperator(il);
 	}
 	accept(endsy);
 }
 
-// оператор
-void CCompiler::ooperator() {
-	/*<оператор>::=<непомеченный оператор>*/
-
-	unlabeledoperator();
+// РѕРїРµСЂР°С‚РѕСЂ
+void CCompiler::ooperator(ILGenerator^ il) {
+	/*<РѕРїРµСЂР°С‚РѕСЂ>::=<РЅРµРїРѕРјРµС‡РµРЅРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ>*/
+	unlabeledoperator(il);
 }
 
-//непомеченный оператор
-void CCompiler::unlabeledoperator() {
+//РЅРµРїРѕРјРµС‡РµРЅРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ
+void CCompiler::unlabeledoperator(ILGenerator^ il) {
 
-	/*<непомеченный оператор>:: = <простой оператор> | <сложный оператор>*/
-
-	if(curToken->op== beginsy|| curToken->op == ifsy || curToken->op == whilesy )
-		complexoperator();
-	else simpleoperator();
+	/*<РЅРµРїРѕРјРµС‡РµРЅРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ>:: = <РїСЂРѕСЃС‚РѕР№ РѕРїРµСЂР°С‚РѕСЂ> | <СЃР»РѕР¶РЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ>*/	
+	if (isOper({ beginsy,ifsy,whilesy }))
+		complexoperator(il);
+	else simpleoperator(il);
 }
 
-//простой оператор
-void CCompiler::simpleoperator() {
-	/*<простой оператор>:: = <оператор присваивания>*/
-	if(curToken->tt ==ttIdent)
-		assignmentoperator();
+//РїСЂРѕСЃС‚РѕР№ РѕРїРµСЂР°С‚РѕСЂ
+void CCompiler::simpleoperator(ILGenerator^ il) {
+	/*<РїСЂРѕСЃС‚РѕР№ РѕРїРµСЂР°С‚РѕСЂ>:: = <РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ>*/
+	if (curToken->GetTokenType() == ttIdent)
+		assignmentoperator(il);
+	if (curToken->GetOperationSymbol() == writelnsy) procedureoperator(il);
+}
+// РѕРїРµСЂР°С‚РѕСЂ РїСЂРѕС†РµРґСѓСЂС‹
+void CCompiler::procedureoperator(ILGenerator^ il) {
+	accept(writelnsy);
+	accept(openParSy);
+	parameter(il);
+	accept(closeParSy);
 }
 
 
 
-//сложный оператор
-void CCompiler::complexoperator() {
-	switch (curToken->op)
+void writeLine(CType* _type, ILGenerator^ il) {
+	MethodInfo^ fnWriteLineDouble = Console::typeid->GetMethod("WriteLine", gcnew array<Type^> { Double::typeid });
+	MethodInfo^ fnWriteLineInt = Console::typeid->GetMethod("WriteLine", gcnew array<Type^> { Int32::typeid });
+	MethodInfo^ fnWriteLineString = Console::typeid->GetMethod("WriteLine", gcnew array<Type^> { String::typeid });
+	MethodInfo^ fnWriteLineBool = Console::typeid->GetMethod("WriteLine", gcnew array<Type^> { Boolean::typeid });
+
+	switch (_type->type)
 	{
-	case beginsy:
-		compoundoperator();
+	case et_integer:
+		il->Emit(OpCodes::Call, fnWriteLineInt);
 		break;
-	case ifsy:
-		selectingoperator();
+	case et_double:
+		il->Emit(OpCodes::Call, fnWriteLineDouble);
 		break;
-	case whilesy:
-		cycleoperator();
+	case et_string:
+		il->Emit(OpCodes::Call, fnWriteLineString);
+		break;
+	case et_bool:
+		il->Emit(OpCodes::Call, fnWriteLineBool);
 		break;
 	default:
 		break;
-	} 
+	}
 }
 
-//оператор присваивания
-void CCompiler::assignmentoperator() {
-	/*<оператор присваивания>:: = <переменная>: = <выражение>*/
+//РїР°СЂР°РјРµС‚СЂ
+void CCompiler::parameter(ILGenerator^ il) {
+	
+	writeLine(expression(il),il);		
+}
+
+
+//СЃР»РѕР¶РЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ
+void CCompiler::complexoperator(ILGenerator^ il) {
+
+	switch (curToken->GetOperationSymbol())
+	{
+	case beginsy:
+		compoundoperator(il);
+		break;
+	case ifsy:
+		selectingoperator(il);
+		break;
+	case whilesy:
+		cycleoperator(il);
+		break;
+	default:
+		break;
+	}
+}
+
+//РџСЂРёРІРµРґРµРЅРёРµ С‚РёРїРѕРІ
+void ConvertType(CType* left,CType* right, ILGenerator^ il) {
+	if(left->type==et_double&& right->type==et_integer)
+		il->Emit(OpCodes::Conv_R8);
+}
+
+//РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ
+void CCompiler::assignmentoperator(ILGenerator^ il) {
+	/*<РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ>:: = <РїРµСЂРµРјРµРЅРЅР°СЏ>: = <РІС‹СЂР°Р¶РµРЅРёРµ>*/
 
 
 	CType* left = nullptr;
-	if (curToken->tt == ttIdent) left = availableVariables[curToken->GetIdent()];
-	curToken = lexer->GetNextToken();
-	position posOperation = curToken->GetPosition();
-	accept(assignmentSy);
-	CType* right = expression();
-	if(!right||!right->isDerivedTo(left))  errManager->AddError(incompatibleTypes, posOperation);
-}
-
-
-//выражение
-CType* CCompiler::expression() {
-	/*<выражение>:: = <простое выражение> | <простое выражение>
-		<операция отношения><простое выражение>
-
-	<операция отношения>::==|<> | <|<=|>=|> | in*/
-
-	CType* left = simpleexpression();
-	position posOperation;
-
-	if(curToken->op == equalSy || curToken->op == notEqualSy || curToken->op == lessSy || curToken->op == lessEqualSy ||
-		curToken->op == moreEqualSy || curToken->op == moreSy || curToken->op == insy) {
-
-		posOperation = curToken->GetPosition();
-		curToken = lexer->GetNextToken();
-		CType* right = simpleexpression();
-
-		if (left&&left->isDerivedTo(right)||right&&right->isDerivedTo(left)) return availableTypes["boolean"];
-		else errManager->AddError( incompatibleTypes, posOperation);
-	}
-	return left;
-}
-
-//простое выражение
-CType* CCompiler::simpleexpression() {
-	/*<простое выражение>:: = [<знак>]<слагаемое>
-	{ <аддитивная операция><слагаемое> }
-
-	<знак>::=+|-
-	
-	<аддитивная операция>::=+|-|or*/
-
-	if(curToken->op== sumSy||curToken->op== minusSy) curToken = lexer->GetNextToken();
-	CType* left =summand();
-	position posOperation;
-
-	while (curToken->op == sumSy || curToken->op == minusSy || curToken->op == orsy) {
-
-		posOperation = curToken->GetPosition();
-		curToken = lexer->GetNextToken();
-		CType* right = summand();
-		if (left && left->isDerivedTo(right) || right && right->isDerivedTo(left)) left = deriveTo(left, right);
-		else errManager->AddError( incompatibleTypes, posOperation);
-	}
-
-	return left;
-	
-}
-
-//слагаемое
-CType* CCompiler::summand() {
-
-	/*<слагаемое>::=<множитель>{<мультипликативная операция> <множитель>}
-	
-	<мультипликативная операция>::=*|/|div|mod|and*/
-
-	CType* left = factor();
-	position posOperation;
-
-	while (curToken->op == mulSy || curToken->op == divisionSy || curToken->op == divsy || curToken->op == modsy || curToken->op == andsy) {
-
-		posOperation = curToken->GetPosition();
-		curToken = lexer->GetNextToken();
-		CType* right = factor();
-		if (left && left->isDerivedTo(right) || right && right->isDerivedTo(left)) left = deriveTo(left, right);
-		else errManager->AddError( incompatibleTypes, posOperation);
-	}
-	return left;
-}
-
-//множитель
-CType* CCompiler::factor() {
-	/*<множитель>::=<переменная>|<константа без знака>| (<выражение>) */
-
-
-	if (curToken->tt == ttIdent) { 
+	int index_ident = 0;
+	if (curToken->GetTokenType() == ttIdent) {
 		if (!availableVariables[curToken->GetIdent()] && !variablesError[curToken->GetIdent()]) {
 			errManager->AddError(undeclaredIdent, curToken->GetPosition());
 			variablesError[curToken->GetIdent()] = true;
 		}
-		std::string ident = curToken->GetIdent();
-		curToken = lexer->GetNextToken();
-		return availableVariables[ident];
+		left = availableVariables[curToken->GetIdent()];
+		index_ident = indexVariables[curToken->GetIdent()];
 	}
-	else if (curToken->tt == ttConst) {
+	curToken = lexer->GetNextToken();
+	position posOperation = curToken->GetPosition();
+	accept(assignmentSy);
+	CType* right = expression(il);
+	if (!right || !right->isDerivedTo(left))  errManager->AddError(incompatibleTypes, posOperation);
 
-		std::string type = curToken->constVal->GetClassType();
+	//Р—Р°РїРёСЃС‹РІР°РЅРёРµ Р·РЅР°С‡РµРЅРёРµ РІ РїРµСЂРµРјРµРЅРЅСѓСЋ
+	ConvertType(left,right, il);
+	il->Emit(OpCodes::Stloc, index_ident);
+	
+
+}
+void AddOper(OperationSymbols op, ILGenerator^ il) {
+	switch (op)
+	{
+	case notEqualSy:
+		il->Emit(OpCodes::Ceq);
+		il->Emit(OpCodes::Ldc_I4_0);
+		il->Emit(OpCodes::Ceq);
+		break;
+	case lessEqualSy:
+		il->Emit(OpCodes::Cgt);
+		il->Emit(OpCodes::Ldc_I4_0);
+		il->Emit(OpCodes::Ceq);
+		break;
+	case lessSy:
+		il->Emit(OpCodes::Clt);
+		break;
+	case moreEqualSy:
+		il->Emit(OpCodes::Clt);
+		il->Emit(OpCodes::Ldc_I4_0);
+		il->Emit(OpCodes::Ceq);
+		break;
+	case moreSy:
+		il->Emit(OpCodes::Cgt);
+		break;
+	case sumSy:
+		il->Emit(OpCodes::Add);
+		break;
+	case divsy:
+		il->Emit(OpCodes::Div);
+		break;
+	case minusSy:
+		il->Emit(OpCodes::Sub);
+		break;
+	case divisionSy:
+		il->Emit(OpCodes::Div);
+		break;
+	case modsy:
+		il->Emit(OpCodes::Rem);
+		break;
+	case equalSy:
+		il->Emit(OpCodes::Ceq);
+		break;
+	case mulSy:
+		il->Emit(OpCodes::Mul);
+		break;
+	case orsy:
+		il->Emit(OpCodes::Or);
+		break;
+	case andsy:
+		il->Emit(OpCodes::And);
+		break;
+
+	default:
+		break;
+	}
+}
+
+//РІС‹СЂР°Р¶РµРЅРёРµ
+CType* CCompiler::expression(ILGenerator^ il) {
+	/*<РІС‹СЂР°Р¶РµРЅРёРµ>:: = <РїСЂРѕСЃС‚РѕРµ РІС‹СЂР°Р¶РµРЅРёРµ> | <РїСЂРѕСЃС‚РѕРµ РІС‹СЂР°Р¶РµРЅРёРµ>
+		<РѕРїРµСЂР°С†РёСЏ РѕС‚РЅРѕС€РµРЅРёСЏ><РїСЂРѕСЃС‚РѕРµ РІС‹СЂР°Р¶РµРЅРёРµ>
+
+	<РѕРїРµСЂР°С†РёСЏ РѕС‚РЅРѕС€РµРЅРёСЏ>::==|<> | <|<=|>=|>*/
+
+	CType* left = simpleexpression(il);
+	position posOperation;
+	OperationSymbols operation;
+	if (isOper({ equalSy ,notEqualSy,lessSy,lessEqualSy,moreEqualSy,moreSy })) {
+
+		posOperation = curToken->GetPosition();
+		operation = curToken->GetOperationSymbol();
+		curToken = lexer->GetNextToken();
+
+		CType* right = simpleexpression(il);
+
+		if (left && left->isDerivedTo(right) || right && right->isDerivedTo(left)) {
+			ConvertType(left,right, il);
+			AddOper(operation, il);
+			return availableTypes["boolean"];
+		}
+		else errManager->AddError(incompatibleTypes, posOperation);
+	}
+	return left;
+}
+
+
+
+
+
+//РїСЂРѕСЃС‚РѕРµ РІС‹СЂР°Р¶РµРЅРёРµ
+CType* CCompiler::simpleexpression(ILGenerator^ il) {
+	/*<РїСЂРѕСЃС‚РѕРµ РІС‹СЂР°Р¶РµРЅРёРµ>:: = [<Р·РЅР°Рє>]<СЃР»Р°РіР°РµРјРѕРµ>
+	{ <Р°РґРґРёС‚РёРІРЅР°СЏ РѕРїРµСЂР°С†РёСЏ><СЃР»Р°РіР°РµРјРѕРµ> }
+
+	<Р·РЅР°Рє>::=+|-
+
+	<Р°РґРґРёС‚РёРІРЅР°СЏ РѕРїРµСЂР°С†РёСЏ>::=+|-|or*/
+	
+	if (isOper({ sumSy,minusSy })) curToken = lexer->GetNextToken();
+	CType* left = summand(il);
+	position posOperation;
+	OperationSymbols operation;
+	
+	while (isOper({ sumSy,minusSy,orsy})) {
+
+		posOperation = curToken->GetPosition();
+		operation = curToken->GetOperationSymbol();
+		curToken = lexer->GetNextToken();
+		CType* right = summand(il);
+		if (left && left->isDerivedTo(right) || right && right->isDerivedTo(left)) left = deriveTo(left, right);
+		else errManager->AddError(incompatibleTypes, posOperation);
+
+		ConvertType(left, right, il);
+		AddOper(operation, il);
+	}
+
+	return left;
+
+}
+
+//СЃР»Р°РіР°РµРјРѕРµ
+CType* CCompiler::summand(ILGenerator^ il) {
+
+	/*<СЃР»Р°РіР°РµРјРѕРµ>::=<РјРЅРѕР¶РёС‚РµР»СЊ>{<РјСѓР»СЊС‚РёРїР»РёРєР°С‚РёРІРЅР°СЏ РѕРїРµСЂР°С†РёСЏ> <РјРЅРѕР¶РёС‚РµР»СЊ>}
+
+	<РјСѓР»СЊС‚РёРїР»РёРєР°С‚РёРІРЅР°СЏ РѕРїРµСЂР°С†РёСЏ>::=*|/|div|mod|and*/
+
+	CType* left = factor(il);
+	position posOperation;
+	OperationSymbols operation;
+	
+	while (isOper({ mulSy,divisionSy,divsy,modsy,andsy })) {
+		operation = curToken->GetOperationSymbol();
+		posOperation = curToken->GetPosition();
+		curToken = lexer->GetNextToken();
+		CType* right = factor(il);
+		if (left && left->isDerivedTo(right) || right && right->isDerivedTo(left)) left = deriveTo(left, right);
+		else errManager->AddError(incompatibleTypes, posOperation);
+		ConvertType(left,right, il);
+		AddOper(operation, il);
+	}
+	return left;
+}
+
+void AddConst(CVariant* variant, ILGenerator^ il) {
+	if (variant->GetClassType() == "integer") {
+		CIntVariant* var = (CIntVariant*)variant;
+		il->Emit(OpCodes::Ldc_I4,var->GetValue());
+		return;
+	}
+	if (variant->GetClassType() == "double") {
+		CDoubleVariant* var = (CDoubleVariant*)variant;
+		il->Emit(OpCodes::Ldc_R8, (double)var->GetValue());
+		return;
+	}
+	if (variant->GetClassType() == "string") {
+		CStringVariant* var = (CStringVariant*)variant;
+		il->Emit(OpCodes::Ldstr, gcnew System::String(var->GetValue().c_str()));
+		return;
+	}
+}
+
+
+
+
+//РјРЅРѕР¶РёС‚РµР»СЊ
+CType* CCompiler::factor(ILGenerator^ il) {
+	/*<РјРЅРѕР¶РёС‚РµР»СЊ>::=<РїРµСЂРµРјРµРЅРЅР°СЏ>|<РєРѕРЅСЃС‚Р°РЅС‚Р° Р±РµР· Р·РЅР°РєР°>| (<РІС‹СЂР°Р¶РµРЅРёРµ>) */
+
+	//РџРµСЂРµРјРµРЅРЅР°СЏ
+	if (curToken->GetTokenType() == ttIdent) {
+
+		if (!availableVariables[curToken->GetIdent()] && !variablesError[curToken->GetIdent()]) {
+			errManager->AddError(undeclaredIdent, curToken->GetPosition());
+			variablesError[curToken->GetIdent()] = true;
+		}
+
+		std::string ident = curToken->GetIdent();
+		il->Emit(OpCodes::Ldloc, indexVariables[ident]);
+		curToken = lexer->GetNextToken();	
+		return availableVariables[ident];
+
+	}
+	//РљРѕРЅСЃС‚Р°РЅС‚Р°
+	if (curToken->GetTokenType() == ttConst) {
+
+		std::string type = curToken->GetConst()->GetClassType();
+		AddConst(curToken->GetConst(), il);
 		curToken = lexer->GetNextToken();
 		return availableTypes[type];
 	}
-
-	else if (curToken->op == openParSy) {
+	//Р’С‹СЂР°Р¶РµРЅРёРµ
+	if (curToken->GetOperationSymbol() == openParSy) {
 		accept(openParSy);
-		CType* left =  expression();
+		CType* left = expression(il);
 		accept(closeParSy);
 		return left;
 	}
@@ -281,42 +480,71 @@ CType* CCompiler::factor() {
 
 }
 
-//выбирающий оператор
-void CCompiler::selectingoperator() {
-	/*<выбирающий оператор>:: = <условный оператор>*/
-	conditionaloperator();
+//РІС‹Р±РёСЂР°СЋС‰РёР№ РѕРїРµСЂР°С‚РѕСЂ
+void CCompiler::selectingoperator(ILGenerator^ il) {
+	/*<РІС‹Р±РёСЂР°СЋС‰РёР№ РѕРїРµСЂР°С‚РѕСЂ>:: = <СѓСЃР»РѕРІРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ>*/
+	conditionaloperator(il);
 }
 
-//оператор цикла
-void CCompiler::cycleoperator() {
-	/*<оператор цикла>::=<цикл с предусловием>*/
+//РѕРїРµСЂР°С‚РѕСЂ С†РёРєР»Р°
+void CCompiler::cycleoperator(ILGenerator^ il) {
+	/*<РѕРїРµСЂР°С‚РѕСЂ С†РёРєР»Р°>::=<С†РёРєР» СЃ РїСЂРµРґСѓСЃР»РѕРІРёРµРј>*/
 
-	whilepart();
+	whilepart(il);
 }
 
-//условный оператор
-void CCompiler::conditionaloperator() {
-	/*<условный оператор>:: = if <выражение> then <оператор> |
-		if <выражение> then <оператор> else <оператор>*/
+//СѓСЃР»РѕРІРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ
+void CCompiler::conditionaloperator(ILGenerator^ il) {
+	/*<СѓСЃР»РѕРІРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ>:: = if <РІС‹СЂР°Р¶РµРЅРёРµ> then <РѕРїРµСЂР°С‚РѕСЂ> |
+		if <РІС‹СЂР°Р¶РµРЅРёРµ> then <РѕРїРµСЂР°С‚РѕСЂ> else <РѕРїРµСЂР°С‚РѕСЂ>*/
 	position posOperation = curToken->GetPosition();;
 	accept(ifsy);
-	CType* left = expression();
-	if(!left||!left->isDerivedTo(availableTypes["boolean"])) errManager->AddError(expressionBool, posOperation);
+
+
+	Label falseLabel = il->DefineLabel();
+	Label continueLabel = il->DefineLabel();
+
+	CType* left = expression(il);
+	if (!left || !left->isDerivedTo(availableTypes["boolean"])) errManager->AddError(expressionBool, posOperation);
 	accept(thensy);
-	ooperator();
-	if (curToken->op == elsesy) {
-		accept(elsesy);
-		ooperator();
+
+	il->Emit(OpCodes::Brfalse_S, falseLabel);
+	ooperator(il);
+	il->Emit(OpCodes::Br_S, continueLabel);
+
+	il->MarkLabel(falseLabel);
+	if (curToken->GetOperationSymbol() == elsesy) {
+		accept(elsesy);	
+		ooperator(il);
 	}
+	il->MarkLabel(continueLabel);
 }
 
-//цикл с предусловием
-void CCompiler::whilepart() {
-	/*<цикл с предусловием>:: = while <выражение> do <оператор>*/
+//С†РёРєР» СЃ РїСЂРµРґСѓСЃР»РѕРІРёРµРј
+void CCompiler::whilepart(ILGenerator^ il) {
+	/*<С†РёРєР» СЃ РїСЂРµРґСѓСЃР»РѕРІРёРµРј>:: = while <РІС‹СЂР°Р¶РµРЅРёРµ> do <РѕРїРµСЂР°С‚РѕСЂ>*/
 	position posOperation = curToken->GetPosition();;
 	accept(whilesy);
-	CType* left = expression();
+
+	Label falseLabel = il->DefineLabel();
+	Label continueLabel = il->DefineLabel();
+
+	il->MarkLabel(falseLabel);
+	CType* left = expression(il);
+	il->Emit(OpCodes::Brfalse_S, continueLabel);
 	if (!left || !left->isDerivedTo(availableTypes["boolean"])) errManager->AddError(expressionBool, posOperation);
+
 	accept(dosy);
-	ooperator();
+	ooperator(il);
+	il->Emit(OpCodes::Br_S, falseLabel);
+	il->MarkLabel(continueLabel);
 }
+
+
+
+CCompiler::~CCompiler() {
+	delete lexer;
+	delete curToken;
+	delete errManager;
+}
+

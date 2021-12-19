@@ -1,10 +1,10 @@
+﻿#include "pch.h"
 #include "ErrorManager.h"
 #include<algorithm>
-void ErrorManager::AddError( ErrorCode errCode, position pos) {
-	if (!positionError[pos]) {
+
+
+void ErrorManager::AddError(ErrorCode errCode, position pos) {
 		errors.push_back(new Error(pos, errCode));
-		positionError[pos] = true;
-	}
 }
 
 
@@ -18,5 +18,16 @@ Error* ErrorManager::GetError() {
 
 void ErrorManager::SortError() {
 	auto cmp = [](Error* a, Error* b) {return *a < *b; };
-	sort(errors.begin(), errors.end(),cmp);
+	sort(errors.begin(), errors.end(), cmp);
+}
+
+
+int ErrorManager::CountErrors() {
+	return errors.size();
+}
+
+
+ErrorManager::~ErrorManager() {
+	for (int i = 0; i < errors.size(); ++i)
+		delete errors[i];
 }

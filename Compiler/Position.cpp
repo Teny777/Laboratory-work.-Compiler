@@ -1,5 +1,7 @@
+﻿#include "pch.h"
 #include "Position.h"
 
+using namespace System;
 bool position::operator<(const position& pos) const {
 	return (lineNumber == pos.lineNumber) ? charNumber < pos.charNumber : lineNumber < pos.lineNumber;
 }
@@ -17,7 +19,7 @@ bool position :: operator>=(const position& pos) const {
 }
 
 bool position :: operator==(const position& pos) const {
-	return lineNumber == pos.lineNumber&& charNumber == pos.charNumber;
+	return lineNumber == pos.lineNumber && charNumber == pos.charNumber;
 }
 
 bool position :: operator!=(const position& pos) const {

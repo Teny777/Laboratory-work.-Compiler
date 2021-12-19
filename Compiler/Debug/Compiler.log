@@ -1,3 +1,4 @@
 ﻿  CCompiler.cpp
-D:\Андрей\Учеба\ФГиМТ\Compiler\Compiler\CCompiler.cpp(282): warning C4715: CCompiler::factor: значение возвращается не при всех путях выполнения
-  Compiler.vcxproj -> D:\Андрей\Учеба\ФГиМТ\Compiler\Debug\Compiler.exe
+D:\Андрей\Учеба\ФГиМТ\Generator\Compiler\Compiler\CCompiler.cpp(481): warning C4715: CCompiler::factor: значение возвращается не при всех путях выполнения
+  AssemblyInfo.obj : обнаружен модуль MSIL; для MSIL последовательная компоновка отключена; выполняется полная компоновка
+  Compiler.vcxproj -> D:\Андрей\Учеба\ФГиМТ\Generator\Compiler\Debug\Compiler.exe

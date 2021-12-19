@@ -1,4 +1,6 @@
+﻿#include "pch.h"
 #include "Error.h"
+
 
 Error::Error(position _pos, ErrorCode _code) {
 	pos = _pos;
@@ -23,17 +25,17 @@ std::string Error::GetDecryptionOfError() {
 
 
 bool Error::operator<(const Error& err) const {
-	return pos<err.pos;
+	return pos < err.pos;
 }
 bool  Error :: operator>(const Error& err) const {
 	return pos > err.pos;
 }
 bool  Error :: operator ==(const Error& err) const {
-	return pos==err.pos;
+	return pos == err.pos;
 }
 
 bool  Error :: operator<=(const Error& err) const {
-	return pos<=err.pos;
+	return pos <= err.pos;
 }
 bool  Error :: operator>=(const Error& err) const {
 	return  pos >= err.pos;

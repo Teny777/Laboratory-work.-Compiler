@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include<deque>
 #include<string>
@@ -9,13 +9,19 @@
 
 class ErrorManager {
 private:
-	
+
 	std::deque <Error*> errors;
-	std::map<position, bool> positionError; // ������ � �������
+
 public:
-	void AddError(ErrorCode errCode, position pos);
+	//Добавление ошибки
+	void AddError(ErrorCode errCode, position pos); 
+	//Получение ошибки
 	Error* GetError();
+	//Получение количества ошибок
+	int CountErrors();
+	//Сортировка ошибок по позиции
 	void SortError();
-	
+
+	~ErrorManager();
 };
 

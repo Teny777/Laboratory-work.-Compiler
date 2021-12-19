@@ -1,20 +1,21 @@
-﻿#include "CLexer.h"
+﻿#include "pch.h"
+#include "CLexer.h"
 #include<string>
 
 
-CLexer::CLexer(CIO* io,ErrorManager* _errManager) {
+CLexer::CLexer(CIO* io, ErrorManager* _errManager) {
 	IO = io;
 	errManager = _errManager;
 }
 
 
 //Проверка на буку
-bool CLexer :: IsLetter(char cur) {
+bool CLexer::IsLetter(char cur) {
 	return cur >= 'a' && cur <= 'z' || cur >= 'A' && cur <= 'Z';
 }
 
 //Проверка на цифру
-bool CLexer :: IsDigit(char cur) {
+bool CLexer::IsDigit(char cur) {
 	return cur >= '0' && cur <= '9';
 }
 
@@ -29,7 +30,7 @@ CToken* CLexer::IncorrectIdent(std::string ident) {
 }
 
 //Пролучение слова
-CToken* CLexer ::GetWord() {
+CToken* CLexer::GetWord() {
 	std::string ident;
 	ident = curLiter;
 	curLiter = IO->GetNextCh();
@@ -38,15 +39,16 @@ CToken* CLexer ::GetWord() {
 		curLiter = IO->GetNextCh();
 	}
 	if (keyWords.count(ident))
-		return new CToken(ttOper, GetOperKeySy[ident], ident,IO->GetPrevPosition());
+		return new CToken(ttOper, GetOperKeySy[ident], ident, IO->GetPrevPosition());
 
-	return new CToken(ttIdent, ident,IO->GetPrevPosition());
+	return new CToken(ttIdent, ident, IO->GetPrevPosition());
 }
 
 
 
 CToken* CLexer::GetDigitConst() {
 	std::string number = "";
+
 	while (IsDigit(curLiter)) {
 		number += curLiter;
 		curLiter = IO->GetNextCh();
@@ -57,21 +59,21 @@ CToken* CLexer::GetDigitConst() {
 		return IncorrectIdent(number);
 
 
-	if (curLiter != '.') 
+	if (curLiter != '.')
 	{
 		if (CheckIntConst(std::stoi(number))) {
-			errManager->AddError( constantOverflow, IO->GetPrevPosition());
+			errManager->AddError(constantOverflow, IO->GetPrevPosition());
 			return new CToken(ttSpec, number, IO->GetPrevPosition());
 		}
-		return new CToken(ttConst, new CIntVariant(std::stoi(number)), number,IO->GetPrevPosition()); //Константа int
+		return new CToken(ttConst, new CIntVariant(std::stoi(number)), number, IO->GetPrevPosition()); //Константа int
 	}
 	curLiter = IO->GetNextCh();
 
 	//Для перечисления ..
 	if (curLiter == '.') {
-		
+
 		if (CheckIntConst(std::stoi(number))) {
-			errManager->AddError( constantOverflow, IO->GetPrevPosition());
+			errManager->AddError(constantOverflow, IO->GetPrevPosition());
 			return new CToken(ttSpec, number, IO->GetPrevPosition());
 		}
 		curLiter = 35;
@@ -89,7 +91,7 @@ CToken* CLexer::GetDigitConst() {
 		return IncorrectIdent(number);
 
 	if (CheckDoubleConst(std::stod(number))) {
-		errManager->AddError( constantOverflow, IO->GetPrevPosition());
+		errManager->AddError(constantOverflow, IO->GetPrevPosition());
 		return new CToken(ttSpec, number, IO->GetPrevPosition());
 	}
 	return new CToken(ttConst, new CDoubleVariant(std::stod(number)), number, IO->GetPrevPosition()); //Константа double
@@ -106,7 +108,6 @@ CToken* CLexer::GetNextToken() {
 
 	switch (curLiter)
 	{
-
 	case ':':
 
 		curLiter = IO->GetNextCh();
@@ -217,9 +218,9 @@ CToken* CLexer::GetNextToken() {
 	case '/': {
 
 		curLiter = IO->GetNextCh();
-		if(curLiter!='/') return new CToken(ttOper, divisionSy, ident, IO->GetPrevPosition()); //Деление
+		if (curLiter != '/') return new CToken(ttOper, divisionSy, ident, IO->GetPrevPosition()); //Деление
 		curLiter = IO->GetNextCh();
-		while (curLiter != '\n' && curLiter != '\0') 
+		while (curLiter != '\n' && curLiter != '\0')
 			curLiter = IO->GetNextCh();
 		curLiter = IO->GetNextCh();
 		return GetNextToken();
@@ -232,7 +233,7 @@ CToken* CLexer::GetNextToken() {
 		curLiter = IO->GetNextCh();
 
 		while (true) {
-			while (curLiter != '*') 
+			while (curLiter != '*')
 				curLiter = IO->GetNextCh();
 
 			curLiter = IO->GetNextCh();
@@ -244,7 +245,7 @@ CToken* CLexer::GetNextToken() {
 	}
 
 	case '{': {
-		while (curLiter != '}') 
+		while (curLiter != '}')
 			curLiter = IO->GetNextCh();
 		curLiter = IO->GetNextCh();
 		return GetNextToken(); //Пропуск многострочного комментария {}
@@ -258,7 +259,7 @@ CToken* CLexer::GetNextToken() {
 	if (IsDigit(curLiter)) return GetDigitConst();
 
 	if (curLiter != '\0') {
-		errManager->AddError( invalidCharacter, IO->GetPosition());
+		errManager->AddError(invalidCharacter, IO->GetPosition());
 		curLiter = IO->GetNextCh();
 		return new CToken(ttSpec, ident, IO->GetPrevPosition());
 	}

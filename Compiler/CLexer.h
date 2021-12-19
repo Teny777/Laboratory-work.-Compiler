@@ -1,4 +1,5 @@
-#pragma once
+п»ї#pragma once
+
 #include "CIO.h"
 #include "CToken.h"
 #include<map>
@@ -8,7 +9,9 @@
 class CLexer {
 private:
 	char curLiter = -1;
+
 	CIO* IO;
+
 	std::map<std::string, OperationSymbols> GetOperKeySy = { { "if",ifsy },
 														{ "do",dosy },
 														{ "of",ofsy },
@@ -47,10 +50,10 @@ private:
 														{ "program",programsy },
 														{ "function",fuctionsy },
 														{ "procedure",proceduresy },
-	
+
 	};
 
-	//Ключевые слова
+	//РљР»СЋС‡РµРІС‹Рµ СЃР»РѕРІР°
 	std::set<std::string> keyWords = { "if","do","of","or","in","to",
 									"end","var", "div", "and", "not", "for", "mod","set",
 									"then","else", "case", "file", "goto", "type", "with",
@@ -58,24 +61,26 @@ private:
 									"downto","packed", "record", "repeat","length","writeln","readln","copy",
 									"program","fuction","procedure" };
 
-	//Проверка на букву
+	//РџСЂРѕРІРµСЂРєР° РЅР° Р±СѓРєРІСѓ
 	bool IsLetter(char cur);
 
-	//Проверка на цифру
+	//РџСЂРѕРІРµСЂРєР° РЅР° С†РёС„СЂСѓ
 	bool IsDigit(char cur);
 
-	//Пролучение слова
+	//РџСЂРѕРІРµСЂРєР° СЃР»РѕРІР°
 	CToken* GetWord();
 
-	//Получение константы
+	//РџСЂРѕРІРµРєСЂР° С‡РёСЃР»РѕРІРѕР№ РєРѕРЅСЃС‚Р°РЅС‚С‹
 	CToken* GetDigitConst();
 
-	//Менеджер ошибок
+	//РњРµРЅРµРґР¶РµСЂ РѕС€РёР±РѕРє
 	ErrorManager* errManager;
 
-	//Неверный идентификатор
+	//РќРµРІРµСЂРЅС‹Р№ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ
 	CToken* IncorrectIdent(std::string ident);
 
+
+	//РџСЂРѕРІРµСЂРєР° РЅР° РїРµСЂРµРїРѕР»РЅРµРЅРёРµ
 	bool CheckIntConst(int val);
 
 	bool CheckDoubleConst(double val);

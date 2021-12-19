@@ -1,14 +1,15 @@
+﻿#include "pch.h"
 #include "CType.h"
 
-
+using namespace System;
 
 
 bool  CIntType::isDerivedTo(CType* b) {
-	return b!=nullptr&&(this == b || b->type == et_double);
+	return b != nullptr && (this == b || b->type == et_double);
 }
 
 bool  CBoolType::isDerivedTo(CType* b) {
-	return b != nullptr &&this == b;
+	return b != nullptr && this == b;
 }
 
 bool  CStringType::isDerivedTo(CType* b) {
