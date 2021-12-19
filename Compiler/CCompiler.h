@@ -1,4 +1,4 @@
-﻿п»ї#pragma once
+#pragma once
 #include "pch.h"
 #include<string>
 #include <set>
